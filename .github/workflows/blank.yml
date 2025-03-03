@@ -37,31 +37,6 @@ jobs:
     steps:
       - name: Run a one-line script 4
         run: echo Hello, world!!
-  job_number5:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run a one-line script 5
-        run: echo Hello, world!!
-  job_number6:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run a one-line script 6
-        run: echo Hello, world!!
-  job_number7:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run a one-line script 7
-        run: echo Hello, world!!
-  job_number8:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run a one-line script 8
-        run: echo Hello, world!
-  job_number9:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run a one-line script 9
-        run: echo Hello, world!
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -80,3 +55,27 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+  package-registration:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: ServiceNow DevOps Change Automation
+        uses: ServiceNow/servicenow-devops-change@v4.0.0
+        with:
+          instance-url: ${{ secrets.SN_URL }}
+          devops-integration-token: ${{ secrets.SN_TOKEN }}
+          tool-id: ${{ secrets.SN_TOOL_ID }}
+          job-name: ${{ github.job }}
+          context-github: ${{ toJSON(github) }}
+          change-request: '{}'
+          deployment-gate: '{"environment":"Production","jobName":"My deploy test"}'
+  deploy:
+    name: My deploy test
+    needs: package-registration
+    environment: Production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Run a one-line script
+        run: echo Hello, world!
+        
